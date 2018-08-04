@@ -1,76 +1,108 @@
 import React from 'react'
 import _ from 'lodash'
 import { action, observable } from 'mobx'
-
-const emptyCell = '|___|'
-
-const cross = '|_X_|'
-
-const zero = '|_0_|'
-
-const initialArea =
-  {
-    1: { id: 1, cellBody: emptyCell },
-    2: { id: 2, cellBody: emptyCell },
-    3: { id: 3, cellBody: emptyCell },
-    4: { id: 4, cellBody: emptyCell },
-    5: { id: 5, cellBody: emptyCell },
-    6: { id: 6, cellBody: emptyCell },
-    7: { id: 7, cellBody: emptyCell },
-    8: { id: 8, cellBody: emptyCell },
-    9: { id: 9, cellBody: emptyCell },
-  }
-
-
-const winnerPosition = [
-  [1, 2, 3], [4, 5, 6], [7, 8, 9], /** 3 клетки по горизонтали **/
-  [1, 4, 7], [2, 5, 8], [3, 6, 9], /** 3 клетки по вертикали **/
-  [1, 5, 9], [2, 5, 7]             /** 3 клетки по диагонали **/
-]
+import {
+  emptyCell,
+  cross,
+  zero,
+  initialArea,
+  winnerPosition
+} from '../config/config'
+import {
+  getRandomIndex,
+  collectArray,
+  finishGame
+} from '../utils/utils'
 
 class app {
   @observable cells = initialArea
 
-  @observable step = 0
+  @observable step = 1
 
   @observable finishArray = []
 
   @action
-  handleClick = (positionId) => {
+  handleClick = positionId => {
     /** Только если ячейка пустая **/
     if (this.cells[positionId].cellBody === emptyCell) {
 
-      /** Определяем кто сейчас ходит **/
-      const currPlayer = this.currStep(this.step++)
-      this.cells[positionId] = { id: positionId, cellBody: currPlayer }
+      /** Первый ходит человек - ходит крестиком **/
 
-      /** В переменную попадают выйгрышные позиции **/
-      this.finishArray = this.finishGame(Object.values(this.cells), currPlayer, winnerPosition)
-      if (this.finishArray.length) {
-        alert('you win')
-        this.cells = initialArea
+      this.cells[positionId] = { id: positionId, cellBody: cross }
+      const cellsArray = Object.values(this.cells)
+
+      /** Если не победитель делаем ход компьютером **/
+      if (!this.isWinner(cross, winnerPosition, cellsArray)) {
+
+        /**
+         * собираем массив ноликов - currOpponentCellArray
+         *  собираем массив крестиков - currPlayerCellArray
+         *  запускаем функцию компьютера
+         **/
+
+        const computerCellArray = collectArray(cellsArray, zero)
+        const playerCellArray = collectArray(cellsArray, cross)
+        this.opponentGo(computerCellArray, playerCellArray, winnerPosition)
       }
+
     }
   }
 
-  /** Первые ходят крестики, вторые нолики **/
-  currStep = (step) => step % 2 ? cross : zero
+  @action
+  opponentGo = (
+    computerCellArray,
+    playerCellArray,
+    winnerPosition
+  ) => {
 
-  finishGame = (cells, testBody, winnerPosition) => {
-    let testPosition = []
+    let currWinnerPosition = []
 
-    /** Собираем массив из чекнутых ячеек **/
-    cells.forEach(({ id, cellBody }) => {
-      if (cellBody === testBody) {
-        testPosition = [...testPosition, id]
+    /** Пробегаем по массиву массивов выйгрышных позиций **/
+    winnerPosition.forEach(positionsList => {
+
+      /** Складываем значения, не включенных в массивы **/
+      const diffWinnerAndPlayerPosition = _.difference(positionsList, playerCellArray)
+
+      /** Игрок не занял выйгрышную позицию на поле **/
+      if (diffWinnerAndPlayerPosition.length === positionsList.length) {
+        currWinnerPosition = [...currWinnerPosition, positionsList.filter(position => (
+
+            /** Проверяем не занял ли компьютер эту позицию **/
+            !computerCellArray.includes(position)
+          )
+        )]
       }
     })
 
-    /** Проверяем если наш массив совпадает с массивом выйгрышных позиций
-     * возвращаем true**/
-    return winnerPosition.filter(position => (
-      !_.difference(position, testPosition).length)
-    )
+    /** Берем рандомную позицию **/
+    const subArray = currWinnerPosition[getRandomIndex(currWinnerPosition)]
+    const id = subArray[getRandomIndex(subArray)]
+
+    /** Мы знаем что компьютер играет ноликами **/
+    this.cells[id] = { id, cellBody: zero }
+
+    /** Проверяем на победителя **/
+    this.isWinner(zero, winnerPosition, Object.values(this.cells))
+  }
+
+
+  /** Проверка на победителя **/
+
+  @action
+  isWinner = (
+    currPlayer,
+    winnerPosition,
+    cell
+  ) => {
+    /** В переменную попадают выйгрышные позиции **/
+    this.finishArray = finishGame(cell, currPlayer, winnerPosition)
+    if (this.finishArray.length) {
+      alert(`${currPlayer} is won`)
+      this.cells = initialArea
+      return true
+    } else {
+      return false
+    }
   }
 }
 
