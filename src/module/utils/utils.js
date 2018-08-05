@@ -27,3 +27,19 @@ export function finishGame(cells, testBody, winnerPosition) {
     !_.difference(position, testPosition).length)
   )
 }
+
+export function getBestPosition(winnerPosition, playerCellArray, callback) {
+  return winnerPosition.forEach(positionsList => {
+
+    /** Складываем значения, не включенных в массивы **/
+    const diffWinnerAndPlayerPosition = _.difference(positionsList, playerCellArray)
+
+    /** Если игрок почти победил, занимаем эту позицию **/
+    if (diffWinnerAndPlayerPosition.length < 2) {
+      return diffWinnerAndPlayerPosition[0]
+    }
+
+    callback(diffWinnerAndPlayerPosition, positionsList)
+  })
+
+}

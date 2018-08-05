@@ -59,7 +59,8 @@ class app {
     let currWinnerPosition = []
     let bestPosition = 5
     let id
-    let bestPositionStep = 3
+    let CPUBestPositionStep = 3
+    let playerBestPositionStep = 3
     let bestWinnerPositions = []
 
     /** Пробегаем по массиву массивов выйгрышных позиций **/
@@ -69,7 +70,8 @@ class app {
       const diffWinnerAndPlayerPosition = _.difference(positionsList, playerCellArray)
 
       /** Если игрок почти победил, занимаем эту позицию **/
-      if (diffWinnerAndPlayerPosition.length < 2) {
+      if (diffWinnerAndPlayerPosition.length <= playerBestPositionStep) {
+        //TODO определить какую позицию делать лучшей
         bestPosition = diffWinnerAndPlayerPosition[0]
       }
 
@@ -78,6 +80,11 @@ class app {
         /** Проверяем не занял ли компьютер эту позицию **/
         currWinnerPosition = [...currWinnerPosition, this.getComputerCell(positionsList, computerCellArray)]
       }
+
+      if (diffWinnerAndPlayerPosition.length <= playerBestPositionStep) {
+        playerBestPositionStep = diffWinnerAndPlayerPosition.length
+      }
+
     })
 
     /** Выбираем самый короткий путь до победы **/
@@ -89,10 +96,10 @@ class app {
         bestPosition = diffWinnerAndComputerPosition[0]
       }
 
-      if (diffWinnerAndComputerPosition.length <= bestPositionStep) {
+      if (diffWinnerAndComputerPosition.length <= CPUBestPositionStep) {
 
         /** Обновляем путь до победы **/
-        bestPositionStep = diffWinnerAndComputerPosition.length
+        CPUBestPositionStep = diffWinnerAndComputerPosition.length
         bestWinnerPositions = [...bestWinnerPositions, positionsList]
       }
     })
