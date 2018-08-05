@@ -12,8 +12,7 @@ import {
 import {
   getRandomIndex,
   collectArray,
-  finishGame,
-  bestPosition
+  finishGame
 } from '../utils/utils'
 
 class app {
@@ -119,11 +118,7 @@ class app {
     this.cells[id] = { id, cellBody: zero }
 
     /** Проверяем на победителя **/
-    if (this.isWinner(zero, bestWinnerPositions, Object.values(this.cells))) {
-      //TODO компьютер побеждает, даже не побеждая
-      //TODO Просчитывать что игрок может победить и не давать ему это сделать, чтобы отловить, черти в одну линию крестики [1,2,3]
-      console.log('lol', bestWinnerPositions)
-    }
+    this.isWinner(zero, winnerPosition, Object.values(this.cells))
   }
 
   /** Проверка на победителя **/
