@@ -6,12 +6,14 @@ import {
   cross,
   zero,
   initialArea,
-  winnerPosition
+  winnerPosition,
+  winnerName
 } from '../config/config'
 import {
   getRandomIndex,
   collectArray,
-  finishGame
+  finishGame,
+  bestPosition
 } from '../utils/utils'
 
 class app {
@@ -56,6 +58,10 @@ class app {
   ) => {
 
     let currWinnerPosition = []
+    let bestPosition = 5
+    let id
+    let bestPositionStep = 3
+    let bestWinnerPositions = []
 
     /** Пробегаем по массиву массивов выйгрышных позиций **/
     winnerPosition.forEach(positionsList => {
@@ -63,31 +69,64 @@ class app {
       /** Складываем значения, не включенных в массивы **/
       const diffWinnerAndPlayerPosition = _.difference(positionsList, playerCellArray)
 
+      /** Если игрок почти победил, занимаем эту позицию **/
+      if (diffWinnerAndPlayerPosition.length < 2) {
+        bestPosition = diffWinnerAndPlayerPosition[0]
+      }
+
       /** Игрок не занял выйгрышную позицию на поле **/
       if (diffWinnerAndPlayerPosition.length === positionsList.length) {
-        currWinnerPosition = [...currWinnerPosition, positionsList.filter(position => (
-
-            /** Проверяем не занял ли компьютер эту позицию **/
-            !computerCellArray.includes(position)
-          )
-        )]
+        /** Проверяем не занял ли компьютер эту позицию **/
+        currWinnerPosition = [...currWinnerPosition, this.getComputerCell(positionsList, computerCellArray)]
       }
     })
 
-    /** Берем рандомную позицию **/
-    const subArray = currWinnerPosition[getRandomIndex(currWinnerPosition)]
-    const id = subArray[getRandomIndex(subArray)]
+    /** Выбираем самый короткий путь до победы **/
+    currWinnerPosition.forEach(positionsList => {
+      const diffWinnerAndComputerPosition = _.difference(positionsList, computerCellArray)
+
+      /** Если компьютер почти победил, занимаем эту позицию **/
+      if (diffWinnerAndComputerPosition.length < 2) {
+        bestPosition = diffWinnerAndComputerPosition[0]
+      }
+
+      if (diffWinnerAndComputerPosition.length <= bestPositionStep) {
+
+        /** Обновляем путь до победы **/
+        bestPositionStep = diffWinnerAndComputerPosition.length
+        bestWinnerPositions = [...bestWinnerPositions, positionsList]
+      }
+    })
+
+    /** Выйграшных позиций не осталось **/
+    if (!bestWinnerPositions.length) {
+      this.gameOver()
+      return false
+    }
+
+    /** Проверяем занята ли лучшая позиция **/
+    if (!computerCellArray.includes(bestPosition) && !playerCellArray.includes(bestPosition)) {
+      /** Занимаем лучшую позицию **/
+      id = bestPosition
+    } else {
+
+      /** Берем рандомную позицию **/
+      const subArray = bestWinnerPositions[getRandomIndex(bestWinnerPositions)]
+      id = subArray[getRandomIndex(subArray)]
+    }
 
     /** Мы знаем что компьютер играет ноликами **/
     this.cells[id] = { id, cellBody: zero }
 
     /** Проверяем на победителя **/
-    this.isWinner(zero, winnerPosition, Object.values(this.cells))
+    if (this.isWinner(zero, bestWinnerPositions, Object.values(this.cells))) {
+      //TODO компьютер побеждает, даже не побеждая
+      //TODO Просчитывать что игрок может победить и не давать ему это сделать, чтобы отловить, черти в одну линию крестики [1,2,3]
+      console.log('lol', bestWinnerPositions)
+    }
   }
 
-
   /** Проверка на победителя **/
-
   @action
   isWinner = (
     currPlayer,
@@ -97,13 +136,23 @@ class app {
     /** В переменную попадают выйгрышные позиции **/
     this.finishArray = finishGame(cell, currPlayer, winnerPosition)
     if (this.finishArray.length) {
-      alert(`${currPlayer} is won`)
+      alert(`${winnerName[currPlayer]} is won`)
       this.cells = initialArea
       return true
     } else {
       return false
     }
   }
+
+  @action
+  gameOver = () => {
+    alert('game over')
+    this.cells = initialArea
+  }
+
+  getComputerCell = (positions, computerPositionsArray) => (
+    positions.filter(position => !computerPositionsArray.includes(position))
+  )
 }
 
 export default app

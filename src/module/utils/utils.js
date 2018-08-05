@@ -27,4 +27,3 @@ export function finishGame(cells, testBody, winnerPosition) {
     !_.difference(position, testPosition).length)
   )
 }
-

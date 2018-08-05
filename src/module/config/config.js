@@ -23,3 +23,8 @@ export const winnerPosition = [
   [1, 4, 7], [2, 5, 8], [3, 6, 9], /** 3 клетки по вертикали **/
   [1, 5, 9], [2, 5, 7]             /** 3 клетки по диагонали **/
 ]
+
+export const winnerName = {
+  [cross]: 'Player',
+  [zero]: 'Computer'
+}
