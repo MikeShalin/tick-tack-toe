@@ -28,18 +28,56 @@ export function finishGame(cells, testBody, winnerPosition) {
   )
 }
 
-export function getBestPosition(winnerPosition, playerCellArray, callback) {
-  return winnerPosition.forEach(positionsList => {
-
-    /** Складываем значения, не включенных в массивы **/
-    const diffWinnerAndPlayerPosition = _.difference(positionsList, playerCellArray)
-
-    /** Если игрок почти победил, занимаем эту позицию **/
-    if (diffWinnerAndPlayerPosition.length < 2) {
-      return diffWinnerAndPlayerPosition[0]
+/** Максимально часто повторяющийся элемент **/
+export function maxRepetitions(arr) {
+  let test = {}
+  arr.forEach((el, i) => {
+    if (el === arr[i + 1]) {
+      if (!test[el]) test[el] = 2
+      else test[el] += 1
     }
-
-    callback(diffWinnerAndPlayerPosition, positionsList)
   })
 
+  let max = 0
+  let maxKey = []
+  for (let key in test) {
+    if (test.hasOwnProperty(key)) {
+      if (test[key] > max) {
+        maxKey = key
+        max = test[key]
+      }
+    }
+  }
+
+  return maxKey
 }
+
+export function getBestPosition(pathLength, currLength) {
+  return currLength < pathLength ? currLength : pathLength
+}
+
+export function playerAttack(computerCellArray, winnerPosition) {
+  /** Собираем варианты для хода **/
+  let bestWinnerPositions
+
+  winnerPosition.forEach(positionsList => {
+
+    /** Позиции которые осталось закрыть компьютеру **/
+    const diffWinnerAndComputerPosition = _.difference(positionsList, computerCellArray)
+
+    diffWinnerAndComputerPosition.forEach(positionId => {
+      if (diffWinnerAndComputerPosition.length === 1) {
+
+        /** Остался один ход до победы программы, даем самый большой вес **/
+        bestWinnerPositions = {
+          id: positionId,
+          weight: 3
+        }
+      }
+    })
+  })
+
+  return bestWinnerPositions
+}
+
+
