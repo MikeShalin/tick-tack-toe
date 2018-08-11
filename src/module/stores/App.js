@@ -105,6 +105,7 @@ class app {
             }
           })
         } else {
+          /** Игра окончена **/
           return false
         }
 
@@ -218,8 +219,7 @@ class app {
     /** Если игроку остался не один ход **/
     if (bestPositionStep > 1) {
       /** Наиболее часто повторяющиеся позиции, вероятнее всего игрок встанет сюда **/
-      priority = _.flattenDeep(priority)
-      let maxPriority = maxRepetitions(priority.sort())
+      let maxPriority = maxRepetitions(_.flattenDeep(priority).sort())
 
       bestWinnerPositions[maxPriority] = {
         id: maxPriority,
